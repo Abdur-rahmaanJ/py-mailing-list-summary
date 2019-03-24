@@ -54,7 +54,7 @@ def get_all_mdfile():
 def build_all():
     global files
     for mdfile in get_all_mdfile():
-        files.append(mdfile)
+        files.append(mdfile[:-3])
         build('{}'.format(mdfile))
 
 def build_index():
