@@ -52,8 +52,41 @@ def get_all_mdfile():
     return listdir('md/')
 
 def build_all():
+    global files
     for mdfile in get_all_mdfile():
+        files.append(mdfile)
         build('{}'.format(mdfile))
 
+def build_index():
+    global files
+    TEMPLATE = """<!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/atelier-forest-light.min.css">
+        <style>
+
+        </style>
+    </head>
+    <body>
+    <div class="container">
+
+    {% for file in files %}
+        <a href='{{file}}.html'>{{file}}</a>
+    {% endfor %}
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    </div>
+    </body>
+    </html>
+    """
+    doc = jinja2.Template(TEMPLATE).render(files=files)
+    with open('docs/index.html', 'w+', encoding='utf8') as f:
+        f.write(doc)
+
+files = []
 if __name__ == '__main__':
     build_all()
+    build_index()
