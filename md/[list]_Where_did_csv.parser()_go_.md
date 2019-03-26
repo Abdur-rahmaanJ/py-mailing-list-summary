@@ -1,8 +1,7 @@
 # Where did csv.parser() go?
 
-```
-https://mail.python.org/pipermail/python-list/2018-January/729851.html
-```
+[https://mail.python.org/pipermail/python-list/2018-January/729851.html](https://mail.python.org/pipermail/python-list/2018-January/729851.html)
+
 
 I need record the starting offsets of csv rows in a database for fast seeking later. 
 Unfortunately, using any csv.reader() (or DictReader) tries to cache, which means:

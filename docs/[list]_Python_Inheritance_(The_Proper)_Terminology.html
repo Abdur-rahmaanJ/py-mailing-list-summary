@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/atelier-forest-light.min.css">
+        <style>
+
+        </style>
+    </head>
+    <body>
+    <div class="container">
+
+    <h1>Python Inheritance Terminology</h1>
+<p><a href="https://mail.python.org/pipermail/python-list/2018-January/729897.html">https://mail.python.org/pipermail/python-list/2018-January/729897.html</a></p>
+<p>I&rsquo;m doing some writing for an upcoming course on OOP using Python.  </p>
+<p>I have been doing OOP programming for many years in many different languages, and I want make sure that I&rsquo;m using the appropriate terminology in Python.  I&rsquo;d like to know if there are &ldquo;official&rdquo; or even standard terms that are used to describe a class that is inherited from, and the class that is doing the inheriting.  From my reading (especially the PSF docs.python.org <a href="http://docs.python.org/">http://docs.python.org/</a>, it looks like the terms would be &ldquo;base class&rdquo; and &ldquo;subclass&rdquo;.</p>
+<p>However, in books about Python and other languages, I have also seen the terms:</p>
+<p>base class &amp; derived class
+parent class &amp; child class
+superclass &amp; subclass</p>
+<p>So, are base class &amp; subclass the proper terms?</p>
+<h3>responses</h3>
+<p><strong>1.</strong></p>
+<p>Standard (“official”) terms are most likely to be had from the language
+reference <a href="http://docs.python.org/3/reference/">http://docs.python.org/3/reference/</a>. I would recommend
+the glossary <a href="http://docs.python.org/3/glossary.html">http://docs.python.org/3/glossary.html</a>, but with the
+caveat that many flaws have been found in recent years.</p>
+<pre><code>&gt; However, in books about Python and other languages, I have also seen the terms:
+&gt;
+&gt; base class &amp; derived class
+&gt; parent class &amp; child class
+&gt; superclass &amp; subclass
+</code></pre>
+
+<p>The only term I take issue with there is “superclass”. In a
+multiple-inheritance system, such as provided by Python, the superclass
+is <em>not</em> necessarily the base class. See this article from 2011
+<a href="https://rhettinger.wordpress.com/2011/05/26/super-considered-super/">https://rhettinger.wordpress.com/2011/05/26/super-considered-super/</a>.</p>
+<pre><code>&gt; So, are base class &amp; subclass the proper terms?
+</code></pre>
+
+<p>In my opinion you will be correct to use those terms. Which is not to
+say that other terms aren&rsquo;t also good.</p>
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    </div>
+    </body>
+    </html>
+    

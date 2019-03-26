@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/atelier-forest-light.min.css">
+        <style>
+
+        </style>
+    </head>
+    <body>
+    <div class="container">
+
+    <h1>Native object exposing buffer protocol</h1>
+<p><a href="https://mail.python.org/pipermail/python-list/2018-January/729896.html">https://mail.python.org/pipermail/python-list/2018-January/729896.html</a></p>
+<p>I&rsquo;d like to create a native Python object that exposes the buffer 
+protocol.  Basically, something with a <code>._data member</code> which is a 
+bytearray that I can still readinto, make directly into a numpy array, etc.</p>
+<p>I can do it by inheriting the entire thing from bytearray directly, but 
+that gives me a whole lot of methods that are unsuitable for what I&rsquo;m 
+doing with it, which is reading the contents of a binary file, allowing 
+them to be lightly malleable in memory, and then sending them on to a 
+device.</p>
+<p>Not the end of the world (the file&rsquo;s less than 2KB), but it seems like 
+something that should be doable easily without having to throw around a 
+lot of extraneous copies.</p>
+<h3>responses</h3>
+<p><strong>1.</strong></p>
+<p>Could you use memoryviews instead of making the copies?</p>
+<p><strong>2.</strong></p>
+<pre><code>&gt; I'd like to create a native Python object that exposes the buffer
+&gt; protocol.  Basically, something with a ._data member which is a
+&gt; bytearray that I can still readinto, make directly into a numpy array,
+&gt; etc.
+</code></pre>
+
+<p>The “etc.” seems pretty important, there. You want the behaviour of
+‘bytearray’ without actually inheriting that behaviour from the
+‘bytearray’ type.</p>
+<p>So, it seems your options are:</p>
+<ul>
+<li>
+<p>Enumerate all the things, specifically, that you do want your new type
+  to do. Don&rsquo;t hide anything in “etc.”, so that you know exactly what
+  behaviours need to be implemented. Implement all those behaviours,
+  without benefit of inheriting from <code>bytearray</code>.</p>
+</li>
+<li>
+<p>Inherit from <code>bytearray</code>, but ameliorate the problems you want to
+  avoid. This will require enumerating all those problems, so that you
+  can know whether you have avoided them. Don&rsquo;t hide any of them in an
+  “etc.”.</p>
+</li>
+</ul>
+<pre><code>&gt; Not the end of the world (the file's less than 2KB), but it seems like
+&gt; something that should be doable easily without having to throw around
+&gt; a lot of extraneous copies.
+</code></pre>
+
+<p>I look forward to your report from having tried it :-)</p>
+<p><strong>3. author</strong></p>
+<pre><code>The “etc.” seems pretty important, there. You want the behaviour of
+&gt; ‘bytearray’ without actually inheriting that behaviour from the
+&gt; ‘bytearray’ type. &gt;
+</code></pre>
+
+<p>Well, one specific behavior.  Ideally, what I want is, when calls like 
+RawIOBase.readinto and ndarray.frombuffer ask my class &ldquo;Hey, do you have 
+any raw bytes that I can read and potentially write?&rdquo; it can answer &ldquo;Why 
+certainly, here they are.&rdquo;  Something like a:</p>
+<pre><code class="python">class Thingy:
+   def __memoryview__(self):
+     return memoryview(self._data)
+</code></pre>
+
+<p>But it doesn&rsquo;t look as if there&rsquo;s a dunder for that.  There&rsquo;s <strong>bytes</strong>, 
+but that specifically requires you give back a bytes() object; even 
+returning a bytearray causes an error.</p>
+<pre><code>&gt; So, it seems your options are:
+&gt; 
+&gt; * Enumerate all the things, specifically, that you do want your new type
+&gt;    to do. Don't hide anything in “etc.”, so that you know exactly what
+&gt;    behaviours need to be implemented. Implement all those behaviours,
+&gt;    without benefit of inheriting from ‘bytearray’.
+&gt; 
+&gt; * Inherit from ‘bytearray’, but ameliorate the problems you want to
+&gt;    avoid. This will require enumerating all those problems, so that you
+&gt;    can know whether you have avoided them. Don't hide any of them in an
+&gt;    “etc.”.
+</code></pre>
+
+<p>That&rsquo;s ultimately the way I&rsquo;m going about it, but since this is only 
+going to get used in-house, I&rsquo;m approaching it the Pythonic way.  The 
+problem is &ldquo;Most methods of bytearray make no sense on a data structure 
+representing a fixed length waveform.&rdquo;  The solution is &ldquo;Well, don&rsquo;t use 
+them.&rdquo;</p>
+<p><strong>4.</strong></p>
+<p>Curiosity having got the better of me I did some searching and found this &ldquo;Implementing the buffer protocol&rdquo; <a href="http://cython.readthedocs.io/en/latest/src/userguide/buffer.html">http://cython.readthedocs.io/en/latest/src/userguide/buffer.html</a>, any use to you?  Note that at the bottom of the link the final section &ldquo;References&rdquo; states &ldquo;The buffer interface used here is set out in PEP 3118, Revising the buffer protocol.&rdquo;, i.e. it is the new protocol and not the old Python 2 one.</p>
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    </div>
+    </body>
+    </html>
+    
