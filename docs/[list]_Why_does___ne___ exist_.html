@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/atelier-forest-light.min.css">
+        <style>
+
+        </style>
+    </head>
+    <body>
+    <div class="container">
+
+    <h1>Why does <code>__ne__</code> exist?</h1>
+<p><a href="https://mail.python.org/pipermail/python-list/2018-January/729918.html">https://mail.python.org/pipermail/python-list/2018-January/729918.html</a></p>
+<p>When you create a Python class, you can create dunder methods to
+define how your objects respond to the standard operators. With
+comparison operators, Python will happily switch the operands around
+to find a method to call:</p>
+<pre><code class="python">&gt;&gt;&gt; class Spam():
+...     def __lt__(self, other):
+...         print(&quot;%s is less than %s&quot; % (self, other))
+...         return True
+...
+&gt;&gt;&gt; Spam() &lt; 2
+&lt;__main__.Spam object at 0x7fb7557b1fd0&gt; is less than 2
+True
+&gt;&gt;&gt; 3 &gt; Spam()
+&lt;__main__.Spam object at 0x7fb7557b1fd0&gt; is less than 3
+True
+&gt;&gt;&gt; 4 &gt; Spam() &lt; 5
+&lt;__main__.Spam object at 0x7fb7557b1fd0&gt; is less than 4
+&lt;__main__.Spam object at 0x7fb7557b1fd0&gt; is less than 5
+True
+</code></pre>
+
+<p>But Python will not automatically assume the converse:</p>
+<pre><code class="python">&gt;&gt;&gt; Spam() &gt;= 6
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+TypeError: '&gt;=' not supported between instances of 'Spam' and 'int'
+&gt;&gt;&gt; Spam() &gt; 7
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+TypeError: '&gt;' not supported between instances of 'Spam' and 'int'
+</code></pre>
+
+<p>This is good. This is correct. For inequalities, you can&rsquo;t assume that
+<code>&gt;=</code> is the exact opposite of <code>&lt;</code> or the combination of <code>&lt;</code> and <code>==</code> (for
+example, sets don&rsquo;t behave like numbers, so <code>x &lt;= y</code> is very different
+from <code>x &lt; y or x == y</code>). But the one that confuses me is <code>!=</code> or <code>__ne__</code>.
+If you don&rsquo;t create it, you get default behaviour:</p>
+<pre><code class="python">&gt;&gt;&gt; class Ham:
+...     def __eq__(self, other):
+...         print(&quot;%s equals %s&quot; % (self, other))
+...         return True
+...
+&gt;&gt;&gt; Ham() == 1
+&lt;__main__.Ham object at 0x7fb7557c0278&gt; equals 1
+True
+&gt;&gt;&gt; 2 == Ham()
+&lt;__main__.Ham object at 0x7fb7557c0278&gt; equals 2
+True
+&gt;&gt;&gt; Ham() != 3
+&lt;__main__.Ham object at 0x7fb7557c0278&gt; equals 3
+False
+&gt;&gt;&gt; 4 != Ham()
+&lt;__main__.Ham object at 0x7fb7557c0278&gt; equals 4
+False
+&gt;&gt;&gt; x = Ham()
+&gt;&gt;&gt; x == x
+&lt;__main__.Ham object at 0x7fb7557b80f0&gt; equals &lt;__main__.Ham object at
+0x7fb7557b80f0&gt;
+True
+&gt;&gt;&gt; x != x
+&lt;__main__.Ham object at 0x7fb7557b80f0&gt; equals &lt;__main__.Ham object at
+0x7fb7557b80f0&gt;
+False
+</code></pre>
+
+<p>Under what circumstances would you want <code>x != y</code> to be different from
+<code>not (x == y)</code> ? How would this make for sane behaviour? Even when
+other things go weird with equality checks, that basic parallel is
+always maintained:</p>
+<pre><code class="python">&gt;&gt;&gt; z = float(&quot;nan&quot;)
+&gt;&gt;&gt; z == z
+False
+&gt;&gt;&gt; z != z
+True
+</code></pre>
+
+<p>Python gives us a <code>not in</code> operator that uses <code>__contains__</code> and then
+negates the result. There is no way for <code>x not in y</code> to be anything
+different from <code>not (x in y)</code>, as evidenced by the peephole optimizer:</p>
+<pre><code class="python">&gt;&gt;&gt; dis.dis(&quot;x not in y&quot;)
+  1           0 LOAD_NAME                0 (x)
+              2 LOAD_NAME                1 (y)
+              4 COMPARE_OP               7 (not in)
+              6 RETURN_VALUE
+&gt;&gt;&gt; dis.dis(&quot;not (x in y)&quot;)
+  1           0 LOAD_NAME                0 (x)
+              2 LOAD_NAME                1 (y)
+              4 COMPARE_OP               7 (not in)
+              6 RETURN_VALUE
+</code></pre>
+
+<p>So why isn&rsquo;t <code>!=</code> done the same way? Is it historical?</p>
+<h3>responses</h3>
+<p><strong>1.</strong></p>
+<pre><code>&gt; Under what circumstances would you want &quot;x != y&quot; to be different from
+&gt; &quot;not (x == y)&quot; ?
+</code></pre>
+
+<p>In numpy, <code>__eq__</code> and <code>__ne__</code> do not, in general, return bools.</p>
+<pre><code class="python">Python 3.6.3 (default, Oct  3 2017, 21:45:48)
+[GCC 7.2.0] on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; a = np.array([1,2,3,4])
+&gt;&gt;&gt; b = np.array([0,2,0,4])
+&gt;&gt;&gt; a == b
+array([False,  True, False,  True], dtype=bool)
+&gt;&gt;&gt; a != b
+array([ True, False,  True, False], dtype=bool)
+&gt;&gt;&gt; not (a == b)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+ValueError: The truth value of an array with more than one element is
+ambiguous. Use a.any() or a.all()
+&gt;&gt;&gt; ~(a == b)
+array([ True, False,  True, False], dtype=bool)
+&gt;&gt;&gt;
+</code></pre>
+
+<p>I couldn&rsquo;t tell you why this was originally allowed, but it does turn
+out to be strangely useful. (As far as the numpy API is concerned, it
+would be even nicer if &lsquo;not&rsquo; could be overridden, IMHO)</p>
+<p><strong>2. author</strong> </p>
+<p>Thanks, that&rsquo;s the kind of example I was looking for. Though numpy
+doesn&rsquo;t drive the core language development much, so the obvious next
+question is: was this why <code>__ne__</code> was implemented, or was there some
+other reason? This example shows how it can be useful, but not why it
+exists.</p>
+<pre><code class="python">&gt;&gt;&gt;&gt; not (a == b)
+&gt; Traceback (most recent call last):
+&gt;   File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+&gt; ValueError: The truth value of an array with more than one element is
+&gt; ambiguous. Use a.any() or a.all()
+</code></pre>
+
+<p>Which means that this construct is still never going to come up in good code.</p>
+<pre><code>&gt;&gt;&gt;&gt; ~(a == b)
+&gt; array([ True, False,  True, False], dtype=bool)
+&gt;&gt;&gt;&gt;
+&gt;
+&gt; I couldn't tell you why this was originally allowed, but it does turn
+&gt; out to be strangely useful. (As far as the numpy API is concerned, it
+&gt; would be even nicer if 'not' could be overridden, IMHO)
+</code></pre>
+
+<p>I&rsquo;m glad <code>not</code> can&rsquo;t be overridden; it&rsquo;d be too hard to reason about a
+piece of code if even the basic boolean operations could change. If
+you want overridables, you have <code>&amp;|~</code> for the bitwise operators (which
+is how numpy does things).</p>
+<p>Has numpy ever asked for a <code>not in</code> dunder method (<code>__not_contained__</code>
+or something)? It&rsquo;s a strange anomaly that &ldquo;not (x in y)&rdquo; can be
+perfectly safely optimized to <code>x not in y</code>, yet basic equality has to
+have separate handling. The default handling does mean that you can
+mostly ignore <code>__ne__</code> and expect things to work, but if you subclass
+something that has both, it&rsquo;ll break:</p>
+<pre><code class="python">class Foo:
+    def __eq__(self, other):
+        print(&quot;Foo: %s == %s&quot; % (self, other))
+        return True
+    def __ne__(self, other):
+        print(&quot;Foo: %s != %s&quot; % (self, other))
+        return False
+
+class Bar(Foo):
+    def __eq__(self, other):
+        print(&quot;Bar: %s == %s&quot; % (self, other))
+        return False
+
+&gt;&gt;&gt; Bar() == 1
+Bar: &lt;__main__.Bar object at 0x7f40ebf3a128&gt; == 1
+False
+&gt;&gt;&gt; Bar() != 1
+Foo: &lt;__main__.Bar object at 0x7f40ebf3a128&gt; != 1
+False
+</code></pre>
+
+<p>Obviously this trivial example looks stupid, but imagine if the
+equality check in the subclass USUALLY gives the same result as the
+superclass, but differs in rare situations. Maybe you create a &ldquo;bag&rdquo;
+class that functions a lot like collections.Counter but ignores zeroes
+when comparing:</p>
+<pre><code class="python">&gt;&gt;&gt; class Bag(collections.Counter):
+...     def __eq__(self, other):
+...         # Disregard any zero entries when comparing to another Bag
+...         return {k:c for k,c in self.items() if c} == {k:c for k,c
+in other.items() if c}
+...
+&gt;&gt;&gt; b1 = Bag(&quot;aaabccdd&quot;)
+&gt;&gt;&gt; b2 = Bag(&quot;aaabccddq&quot;)
+&gt;&gt;&gt; b2[&quot;q&quot;] -= 1
+&gt;&gt;&gt; b1 == b2
+True
+&gt;&gt;&gt; b1 != b2
+True
+&gt;&gt;&gt; dict(b1) == dict(b2)
+False
+&gt;&gt;&gt; dict(b1) != dict(b2)
+True
+</code></pre>
+
+<p>The behaviour of <code>__eq__</code> is normal and sane. But since there&rsquo;s no
+<code>__ne__</code>, the converse comparison falls back on <code>dict.__ne__</code>, not on
+<code>object.__ne__</code>.</p>
+<p><strong>3.</strong></p>
+<pre><code>&gt;&gt; In numpy, __eq__ and ```__ne__``` do not, in general, return bools.
+&gt;&gt;
+&gt;&gt;&gt;&gt;&gt; a = np.array([1,2,3,4])
+&gt;&gt;&gt;&gt;&gt; b = np.array([0,2,0,4])
+&gt;&gt;&gt;&gt;&gt; a == b
+&gt;&gt; array([False,  True, False,  True], dtype=bool)
+&gt;&gt;&gt;&gt;&gt; a != b
+&gt;&gt; array([ True, False,  True, False], dtype=bool)
+&gt;
+&gt; Thanks, that's the kind of example I was looking for. Though numpy
+&gt; doesn't drive the core language development much, so the obvious next
+&gt; question is: was this why ```__ne__``` was implemented, or was there some
+&gt; other reason? This example shows how it can be useful, but not why it
+&gt; exists.
+</code></pre>
+
+<p>Actually, I think it is why it exists.  If I recall correctly, the addition of the six comparative operators* was added 
+at the behest of the scientific/numerical community.</p>
+<p><strong>4.</strong></p>
+<p>The six rich comparison methods were added to 2.1 as a result of PEP 207, which confirms that you&rsquo;re correct, they were added at the request of the numpyites.</p>
+<p><strong>5.</strong></p>
+<p>Interesting sentence from that PEP:</p>
+<pre><code>&quot;3. The == and != operators are not assumed to be each other's
+complement (e.g. IEEE 754 floating point numbers do not satisfy this).&quot;
+</code></pre>
+
+<p>Does anybody here know how IEE 754 floating point numbers need <code>__ne__</code>?</p>
+<p><strong>6.</strong></p>
+<p>That&rsquo;s very interesting. I&rsquo;d also like an answer to this. I can&rsquo;t wrap
+my head around why it would be true. I&rsquo;ve just spent 15 minutes playing
+with the interpreter (i.e. checking operations on 0, -0, 7,
+<code>float('nan')</code>, <code>float('inf')</code>, etc.) and then also reading a bit about IEEE
+754 online and I can&rsquo;t find any combination of examples where <code>==</code> and <code>!=</code>
+are not each others&rsquo; complement.</p>
+<p><strong>7.</strong></p>
+<p>I don&rsquo;t see a case in IEEE where <code>(x == y) != !(x != y)</code>.
+There <em>is</em> a case where <code>(x != x)</code> is true <code>(when x is NaN)</code>, but for such an
+x, <code>(x == x)</code> will be false.</p>
+<p>I am hard pressed to think of a case where <code>__ne__</code> is actually useful.</p>
+<p>That said, while it is true you only need one of (<code>__eq__</code>, <code>__ne__</code>), you
+could make the same claim about (<code>__lt__</code>, <code>__ge__</code>) and (<code>__le__</code>, <code>__gt__</code>).
+That is, in principle you could get by with only (<code>__eq__</code>, <code>__le__</code>, and
+<code>__ge__</code>) or, if you prefer, (<code>__ne__</code>, <code>__lt__</code>, <code>__gt__</code>), or any other
+combination you prefer.</p>
+<p>Or you could go where C++ is doing and say that <em>if</em> one specifies a single
+<code>__cmp__</code> method, it should return one of LT, EQ, GT, and this will
+automatically give rise to all the comparison operators.</p>
+<p>&ldquo;Trade-offs&hellip; trafe-offs as far as the eye can see&rdquo; ;-)</p>
+<p><strong>8.</strong></p>
+<p>Assuming you&rsquo;re talking about a case specifically for IEEE 754, I&rsquo;m
+starting to agree. In general, however, it certainly is useful for some
+numpy objects (as mentioned elsewhere in this thread).</p>
+<pre><code>&gt; That said, while it is true you only need one of (__eq__, __ne__), you
+&gt; could make the same claim about (__lt__, __ge__) and (__le__, __gt__).
+&gt; That is, in principle you could get by with only (__eq__, __le__, and
+&gt; __ge__) or, if you prefer, (__ne__, __lt__, __gt__), or any other
+&gt; combination you prefer.
+</code></pre>
+
+<p>This isn&rsquo;t true for IEEE 754. For example:</p>
+<pre><code class="python">&gt;&gt;&gt; float('nan') &lt; 0
+False
+&gt;&gt;&gt; float('nan') &gt; 0
+False
+&gt;&gt;&gt; float('nan') == 0
+False
+</code></pre>
+
+<p>Also there are many cases where you don&rsquo;t have a &lt; b OR a &gt;= b. For
+example, subsets don&rsquo;t follow this.</p>
+<pre><code>&gt; &quot;Trade-offs... trafe-offs as far as the eye can see&quot; ;-)
+</code></pre>
+
+<p>Yes few things in life are free. :)</p>
+<p><strong>9.</strong></p>
+<p>Ugh, right, for NaN you can have <code>(x &lt; y) != (x &gt;= y)</code> - both would be false
+if one of x and y is a NaN.</p>
+<p>But <code>__ne__</code> is still useless ;-)</p>
+<p><strong>10.</strong></p>
+<pre><code>&gt; I don't see a case in IEEE where (x == y) != !(x != y).
+&gt; There _is_ a case where (x != x) is true (when x is NaN), but for such an
+&gt; x, (x == x) will be false.
+&gt; 
+&gt; I am hard pressed to think of a case where ```__ne__``` is actually useful.
+</code></pre>
+
+<p>See my earlier email and/or PEP 207. (tl;dr: non-bool return values)</p>
+<pre><code>&gt; That said, while it is true you only need one of (__eq__, __ne__), you
+&gt; could make the same claim about (__lt__, __ge__) and (__le__, __gt__).
+&gt; That is, in principle you could get by with only (__eq__, __le__, and
+&gt; __ge__) or, if you prefer, (__ne__, __lt__, __gt__), or any other
+&gt; combination you prefer.
+</code></pre>
+
+<p>PEP 207: &ldquo;The above mechanism is such that classes can get away with not
+implementing either <code>__lt__</code> and <code>__le__</code> or <code>__gt__</code> and <code>__ge__</code>.&rdquo;</p>
+<pre><code>&gt; Or you could go where C++ is doing and say that _if_ one specifies a single
+&gt; __cmp__ method, it should return one of LT, EQ, GT, and this will
+&gt; automatically give rise to all the comparison operators.
+</code></pre>
+
+<p>This used to be the case. (from version 2.1 to version 2.7, AFAICT)</p>
+<p><strong>11.</strong></p>
+<pre><code>&gt; Actually, I think it is why it exists.  If I recall correctly, the
+&gt; addition of the six comparative operators* was added at the behest of
+&gt; the scientific/numerical community.
+</code></pre>
+
+<p>Which personnaly, I think was a mistake. I can understand it is useful
+for the scientific/numerical community to compare vectors with each
+other and get a vector of booleans. However how useful is it doing this
+with the normal boolean operators, instead of calling a function?</p>
+<p>And if doing it with an operator was so important, I think it would have
+been better to introduce boxed operators, like <code>[+]</code>, <code>[&lt;]</code> &hellip; where the
+default behaviour would be an elementary wise application of the
+non-boxed operator.</p>
+<p><strong>12.</strong></p>
+<pre><code>&gt;&gt; In numpy, __eq__ and ```__ne__``` do not, in general, return bools.
+&gt;&gt;
+&gt;&gt;&gt;&gt;&gt; a = np.array([1,2,3,4])
+&gt;&gt;&gt;&gt;&gt; b = np.array([0,2,0,4])
+&gt;&gt;&gt;&gt;&gt; a == b
+&gt;&gt; array([False,  True, False,  True], dtype=bool)
+&gt;&gt;&gt;&gt;&gt; a != b
+&gt;&gt; array([ True, False,  True, False], dtype=bool)
+&gt; 
+&gt; Thanks, that's the kind of example I was looking for. Though numpy
+&gt; doesn't drive the core language development much, so the obvious next
+&gt; question is: was this why ```__ne__``` was implemented, or was there some
+&gt; other reason? This example shows how it can be useful, but not why it
+&gt; exists.
+</code></pre>
+
+<p>AFAIK this was the main reason. This can be also used for creating queries.</p>
+<p>NumPy inspired 4 or 5 core features which are rarely used outside of 
+NumPy. They include the possibility of comparison operators to return 
+non-booleans</p>
+<p><strong>13.</strong></p>
+<pre><code>&gt; Under what circumstances would you want &quot;x != y&quot; to be different from
+&gt; &quot;not (x == y)&quot; ? How would this make for sane behaviour?
+</code></pre>
+
+<p>Presumably so that any behaviour any be programmed when overriding these 
+operators.</p>
+<p>Maybe someone wants to do weird stuff with <code>==</code> that doesn&rsquo;t yield a true 
+or false result, so that you can&rsquo;t just reverse it for <code>!=</code>.</p>
+<p>For example (perhaps this is similar to what was suggested in another post):</p>
+<pre><code class="python">  (10,20,30) == (10,20,40)   yields  (1,1,0)
+  (10,20,30) != (10,20,40)   yields  (0,0,1)
+</code></pre>
+
+<p>Although here, you would probably define &lsquo;not&rsquo; so that <code>not (1,1,0)</code> 
+does actually yield <code>(0,0,1)</code>.</p>
+<p>So clearly I need a weirder example.</p>
+<p>Even when</p>
+<pre><code>&gt; other things go weird with equality checks, that basic parallel is
+&gt; always maintained:
+&gt; 
+&gt;&gt;&gt;&gt; z = float(&quot;nan&quot;)
+&gt;&gt;&gt;&gt; z == z
+&gt; False
+&gt;&gt;&gt;&gt; z != z
+&gt; True
+&gt; 
+&gt; Python gives us a &quot;not in&quot; operator that uses __contains__ and then
+&gt; negates the result. There is no way for &quot;x not in y&quot; to be anything
+&gt; different from &quot;not (x in y)&quot;, as evidenced by the peephole optimizer:
+&gt; 
+&gt;&gt;&gt;&gt; dis.dis(&quot;x not in y&quot;)
+&gt;    1           0 LOAD_NAME                0 (x)
+&gt;                2 LOAD_NAME                1 (y)
+&gt;                4 COMPARE_OP               7 (not in)
+&gt;                6 RETURN_VALUE
+&gt;&gt;&gt;&gt; dis.dis(&quot;not (x in y)&quot;)
+&gt;    1           0 LOAD_NAME                0 (x)
+&gt;                2 LOAD_NAME                1 (y)
+&gt;                4 COMPARE_OP               7 (not in)
+</code></pre>
+
+<p>I get &lsquo;4 COMPARE OP    6 (in)&rsquo; here. So they are distinct ops. &lsquo;not in&rsquo; 
+doesn&rsquo;t just call &lsquo;in&rsquo;, then apply &lsquo;not&rsquo;. Not here anyway.</p>
+<p><strong>14. author</strong></p>
+<p>With tuples, I absolutely agree with Python&rsquo;s current behaviour: the
+tuples you give are simply not equal. A tuple doesn&rsquo;t represent a
+vector; it represents a specific collection of values, like the
+coordinates of a point in 2D or 3D space. If you look at the two
+points (1,5) and (3,5), they aren&rsquo;t &ldquo;half equal&rdquo;. They&rsquo;re different
+points, at different locations. They happen to have the same
+elevation, but that&rsquo;s just a point of curiosity.</p>
+<pre><code>&gt;  Even when
+&gt;&gt;
+&gt;&gt; other things go weird with equality checks, that basic parallel is
+&gt;&gt; always maintained:
+&gt;&gt;
+&gt;&gt;&gt;&gt;&gt; z = float(&quot;nan&quot;)
+&gt;&gt;&gt;&gt;&gt; z == z
+&gt;&gt;
+&gt;&gt; False
+&gt;&gt;&gt;&gt;&gt;
+&gt;&gt;&gt;&gt;&gt; z != z
+&gt;&gt;
+&gt;&gt; True
+&gt;&gt;
+&gt;&gt; Python gives us a &quot;not in&quot; operator that uses __contains__ and then
+&gt;&gt; negates the result. There is no way for &quot;x not in y&quot; to be anything
+&gt;&gt; different from &quot;not (x in y)&quot;, as evidenced by the peephole optimizer:
+&gt;&gt;
+&gt;&gt;&gt;&gt;&gt; dis.dis(&quot;x not in y&quot;)
+&gt;&gt;
+&gt;&gt;    1           0 LOAD_NAME                0 (x)
+&gt;&gt;                2 LOAD_NAME                1 (y)
+&gt;&gt;                4 COMPARE_OP               7 (not in)
+&gt;&gt;                6 RETURN_VALUE
+&gt;&gt;&gt;&gt;&gt;
+&gt;&gt;&gt;&gt;&gt; dis.dis(&quot;not (x in y)&quot;)
+&gt;&gt;
+&gt;&gt;    1           0 LOAD_NAME                0 (x)
+&gt;&gt;                2 LOAD_NAME                1 (y)
+&gt;&gt;                4 COMPARE_OP               7 (not in)
+&gt;
+&gt;
+&gt; I get '4 COMPARE OP    6 (in)' here. So they are distinct ops. 'not in'
+&gt; doesn't just call 'in', then apply 'not'. Not here anyway.
+&gt;
+</code></pre>
+
+<p>The fact that your Python doesn&rsquo;t optimize it is actually beside the
+point; if <em>any</em> Python interpreter can optimize this down, it must be
+semantically identical. I did this on CPython 3.7, fwiw, but it
+doesn&rsquo;t really matter.</p>
+<p><strong>15.</strong></p>
+<pre><code>&gt;&gt; Maybe someone wants to do weird stuff with == that doesn't yield a true or
+&gt;&gt; false result, so that you can't just reverse it for !=.
+&gt;&gt;
+&gt;&gt; For example (perhaps this is similar to what was suggested in another post):
+&gt;&gt;
+&gt;&gt;   (10,20,30) == (10,20,40)   yields  (1,1,0)
+&gt;&gt;   (10,20,30) != (10,20,40)   yields  (0,0,1)
+
+&gt; With tuples, I absolutely agree with Python's current behaviour: the
+&gt; tuples you give are simply not equal. A tuple doesn't represent a
+&gt; vector; it represents a specific collection of values, like the
+&gt; coordinates of a point in 2D or 3D space. If you look at the two
+&gt; points (1,5) and (3,5), they aren't &quot;half equal&quot;. They're different
+&gt; points, at different locations. They happen to have the same
+&gt; elevation, but that's just a point of curiosity.
+</code></pre>
+
+<p>My <code>(10,20,30)</code> were meant to represent some user-defined type, not an 
+ordinary tuple. And someone might intend that <code>==</code> operates on two 
+instances of that type as thought they were vectors. Or any other kind 
+of behaviour as I said.</p>
+<p>But not necessarily some logical inverse of <code>!=</code>.</p>
+<pre><code>&gt;&gt;&gt;&gt;&gt;&gt; dis.dis(&quot;not (x in y)&quot;)
+&gt;&gt;&gt;
+&gt;&gt;&gt;     1           0 LOAD_NAME                0 (x)
+&gt;&gt;&gt;                 2 LOAD_NAME                1 (y)
+&gt;&gt;&gt;                 4 COMPARE_OP               7 (not in)
+&gt;&gt;
+&gt;&gt;
+&gt;&gt; I get '4 COMPARE OP    6 (in)' here. So they are distinct ops. 'not in'
+&gt;&gt; doesn't just call 'in', then apply 'not'. Not here anyway.
+&gt;&gt;
+&gt; 
+&gt; The fact that your Python doesn't optimize it is actually beside the
+&gt; point; if _any_ Python interpreter can optimize this down, it must be
+&gt; semantically identical.
+</code></pre>
+
+<p>Actually I didn&rsquo;t see the &lsquo;not&rsquo; on the outside of the brackets. I 
+thought the two expressions were &lsquo;not in&rsquo; and &lsquo;in&rsquo; and that you might 
+have transcribed the &lsquo;7 (not in)&rsquo; part wrongly.</p>
+<p>But this reduction isn&rsquo;t necessarily an optimisation. It might just be a 
+syntactical transformation from &lsquo;not (a in b)&rsquo; to &lsquo;(a not in b)&rsquo;</p>
+<p>The disassembly for &lsquo;in&rsquo; and &lsquo;not in&rsquo; suggests that these are two 
+independent operators, which could indeed have behaviours that are not 
+complements of each other.</p>
+<p>On the other hand, when you /did/ want to evaluate &lsquo;in&rsquo; followed by 
+&lsquo;not&rsquo;, then you want:</p>
+<pre><code>    not (a in b)            # compare using 'not in'
+</code></pre>
+
+<p>to do the same thing as:</p>
+<pre><code>    temp = a in b           # compare using 'in'
+    not temp                # apply unary not
+</code></pre>
+
+<p>Then there might not be the freedom to have in/not in have independent 
+behaviours.</p>
+<p><strong>16. author</strong></p>
+<pre><code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; dis.dis(&quot;not (x in y)&quot;)
+&gt;&gt;&gt;&gt;
+&gt;&gt;&gt;&gt;
+&gt;&gt;&gt;&gt;     1           0 LOAD_NAME                0 (x)
+&gt;&gt;&gt;&gt;                 2 LOAD_NAME                1 (y)
+&gt;&gt;&gt;&gt;                 4 COMPARE_OP               7 (not in)
+&gt;&gt;&gt;
+&gt;&gt;&gt;
+&gt;&gt;&gt;
+&gt;&gt;&gt; I get '4 COMPARE OP    6 (in)' here. So they are distinct ops. 'not in'
+&gt;&gt;&gt; doesn't just call 'in', then apply 'not'. Not here anyway.
+&gt;&gt;&gt;
+&gt;&gt;
+&gt;&gt; The fact that your Python doesn't optimize it is actually beside the
+&gt;&gt; point; if _any_ Python interpreter can optimize this down, it must be
+&gt;&gt; semantically identical.
+&gt;
+&gt;
+&gt; Actually I didn't see the 'not' on the outside of the brackets. I thought
+&gt; the two expressions were 'not in' and 'in' and that you might have
+&gt; transcribed the '7 (not in)' part wrongly.
+</code></pre>
+
+<p>That&rsquo;s why I don&rsquo;t transcribe - I copy and paste. It&rsquo;s way WAY safer that way.</p>
+<pre><code>&gt; But this reduction isn't necessarily an optimisation. It might just be a
+&gt; syntactical transformation from 'not (a in b)' to '(a not in b)'
+&gt;
+&gt; The disassembly for 'in' and 'not in' suggests that these are two
+&gt; independent operators, which could indeed have behaviours that are not
+&gt; complements of each other.
+</code></pre>
+
+<p>Uhm, if the peephole optimizer does a syntactical transformation, it
+MUST retain the semantics. The disassembly for &ldquo;in&rdquo; and &ldquo;not in&rdquo; shows
+that they are independent, but the disassembly for &ldquo;not (x in y)&rdquo;
+proves that they are semantically linked.</p>
+<pre><code>&gt; On the other hand, when you /did/ want to evaluate 'in' followed by 'not',
+&gt; then you want:
+&gt;
+&gt;    not (a in b)            # compare using 'not in'
+&gt;
+&gt; to do the same thing as:
+&gt;
+&gt;    temp = a in b           # compare using 'in'
+&gt;    not temp                # apply unary not
+&gt;
+&gt; Then there might not be the freedom to have in/not in have independent
+&gt; behaviours.
+</code></pre>
+
+<p>And the whole point of my post is that there is no such freedom - that
+&ldquo;not in&rdquo; MUST always give the exact converse of &ldquo;in&rdquo;. (And if
+<code>__contains__</code> returns something other than a boolean, it is coerced
+before the operator returns it.) Yet equality is not like that. Hence
+my post.</p>
+<p><strong>17.</strong></p>
+<pre><code>&gt; So why isn't != done the same way? Is it historical?
+</code></pre>
+
+<p>I&rsquo;d say this is certainly historical, remembering that in Python 2 you used to be able to compare all sorts of things, whereas in Python 3 you&rsquo;ll get:-</p>
+<pre><code class="python">&gt;&gt;&gt; 1 &lt; &quot;a&quot;
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+TypeError: '&lt;' not supported between instances of 'int' and 'str'
+&gt;&gt;&gt; 
+</code></pre>
+
+<p>This seems to be confirmed by the following.  From the third paragraph at <a href="https://docs.python.org/2/reference/datamodel.html#object.__ne__">https://docs.python.org/2/reference/datamodel.html#object.<strong>ne</strong></a> </p>
+<pre><code>&quot;There are no implied relationships among the comparison operators. The truth of x==y does not imply that x!=y is false. Accordingly, when defining __eq__(), one should also define __ne__() so that the operators will behave as expected...&quot;.  Compare that with the Python 3 equivalent &quot;By default, __ne__() delegates to __eq__() and inverts the result unless it is NotImplemented. There are no other implied relationships among the comparison operators, for example, the truth of ```(x&lt;y or x==y)``` does not imply ```x&lt;=y```...&quot;
+</code></pre>
+
+<p><strong>18. author</strong></p>
+<p>Ah, I forgot to check the Py2 docs. So, yeah, sounds like it&rsquo;s
+basically historical. I&rsquo;m still not sure why it was done in the first
+place, but it looks like it&rsquo;s the sort of thing that wouldn&rsquo;t be done
+now.</p>
+<p><strong>19.</strong></p>
+<p>I&rsquo;m not understanding why you speculate that it wouldn&rsquo;t be done today.</p>
+<p>We&rsquo;ve established that it is useful to allow data types to define their
+own meaning of “equal” and “not equal”, like many other operations. Is
+that not good enough reason to allow it still?</p>
+<p><strong>20. author</strong></p>
+<p>The fact that container types can define &ldquo;contains&rdquo; but can&rsquo;t define
+&ldquo;doesn&rsquo;t contain&rdquo;, and that (as of Py3) there&rsquo;s proper default
+handling, suggests that it&rsquo;s not as big a priority now.</p>
+<p>Let&rsquo;s put it this way. Suppose that <strong>eq</strong> existed and <code>__ne__</code> didn&rsquo;t,
+just like with <strong>contains</strong>. Go ahead: sell the notion of <strong>ne</strong>.
+Pitch it, show why we absolutely need to allow this. Make sure you
+mention the potential confusion when subclassing. Be sure to show why
+it&rsquo;s okay for &ldquo;not in&rdquo; to force to boolean but &ldquo;==&rdquo; should allow any
+return value.</p>
+<p><strong>21.</strong></p>
+<pre><code>&gt; The fact that container types can define &quot;contains&quot; but can't define
+&gt; &quot;doesn't contain&quot;, and that (as of Py3) there's proper default
+&gt; handling, suggests that it's not as big a priority now.
+</code></pre>
+
+<p>That is an inconsistency, I agree.</p>
+<pre><code>&gt; Let's put it this way. Suppose that __eq__ existed and ```__ne__``` didn't,
+&gt; just like with __contains__. Go ahead: sell the notion of __ne__.
+&gt; Pitch it, show why we absolutely need to allow this.
+</code></pre>
+
+<p>I think “reject unless absolutely needed” is an unreasonably high bar,
+which would disqualify most Python language features. So I don&rsquo;t know
+why you expect this to be so especially strongly argued.</p>
+<pre><code>&gt; Make sure you mention the potential confusion when subclassing.
+</code></pre>
+
+<p>For example, that would alsop be a problem for multiple inheritance. Not
+“absolutely needed”, and high risk of confusion when subclassing. Do you
+think that multiple inheritance would thereby also not be allowed today?</p>
+<p>If you consider that a different case, why?</p>
+<p><strong>22. author</strong></p>
+<p>There&rsquo;s a LOT that you can do usefully with MI that you can&rsquo;t do
+without it. Having spent a few years (many years ago) working with
+Java, I appreciate the ability to inherit from more than one class.
+Does it have to be done the way Python currently does it? No. But one
+way or another, it&rsquo;s a massively useful feature.</p>
+<p>(You&rsquo;re right that &ldquo;absolutely needed&rdquo; is too high a bar, but
+hyperbole aside, I do think that MI hits a higher mark than <strong>ne</strong>
+does.)</p>
+<p><strong>23.</strong></p>
+<p>I&rsquo;m not the one making pronouncements on what would or would not be
+allowed, in a counterfactual universe where things had been different
+for so many years. So, because I don&rsquo;t need to speculate about that, I
+won&rsquo;t :-)</p>
+<p><strong>24.</strong></p>
+<p>Considering we just recently added a matrix-multiplication operator, yes.</p>
+<p><strong>25. author</strong></p>
+<p>That has approximately zero consequences on class authors. If you were
+unaware of <code>__matmul__</code>, it wouldn&rsquo;t have the chance to randomly break
+your <code>__mul__</code> semantics. And even with that excellent backward
+compatibility, it STILL took many years to get accepted.</p>
+<p><strong>26.</strong></p>
+<pre><code>&gt; Let's put it this way. Suppose that __eq__ existed and __ne__ didn't,
+&gt; just like with __contains__. Go ahead: sell the notion of __ne__.
+&gt; Pitch it, show why we absolutely need to allow this. Make sure you
+&gt; mention the potential confusion when subclassing. Be sure to show why
+&gt; it's okay for &quot;not in&quot; to force to boolean but &quot;==&quot; should allow any
+&gt; return value.
+</code></pre>
+
+<p><code>__ne__</code> and <code>__eq__</code> are important for building mask arrays in NumPy,
+which allow complex indexing operations.  A lot of NumPy&rsquo;s design was
+inspired by MATLAB, so being able to index the same way as in MATLAB
+is a pretty killer feature.</p>
+<p>Indexing an array using mask arrays like this is idiomatic:</p>
+<pre><code>some_arr = np.array([-1, 0, 1, 2, 3, 4, 5, 2, -1, 3, -1, 6, 7, 3])
+valid = some_arr[some_arr != -1]
+</code></pre>
+
+<p>Anybody with familiarity with NumPy appreciates that this is possible.</p>
+<p>I imagine that ORMs like Django or SqlAlchemy also override <code>__ne__</code> to
+provide nice APIs.</p>
+<p>Finally (and perhaps least imporant), there is a performance hit if
+only allowing <code>__eq__</code> and then taking its inverse.</p>
+<p><strong>27.</strong></p>
+<pre><code>&gt; some_arr = np.array([-1, 0, 1, 2, 3, 4, 5, 2, -1, 3, -1, 6, 7, 3])
+&gt; valid = some_arr[some_arr != -1]
+</code></pre>
+
+<p>I guess it was rather useful because list comprehension wasn&rsquo;t included
+in the language at that moment, but I don&rsquo;t find it that much more useful
+than:</p>
+<pre><code>   valid = somearr[[number != -1 for number in somearr]]
+</code></pre>
+
+<p><strong>28. author</strong></p>
+<pre><code>&gt; Anybody with familiarity with NumPy appreciates that this is possible.
+</code></pre>
+
+<p>I&rsquo;ve used it, and I&rsquo;m familiar with it, and I&rsquo;m still not sure that I
+appreciate it. But if it&rsquo;s there because of MATLAB, well, I guess
+that&rsquo;s what people want?</p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    </div>
+    </body>
+    </html>
+    
