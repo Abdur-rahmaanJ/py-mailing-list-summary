@@ -5,6 +5,7 @@
 
 I need record the starting offsets of csv rows in a database for fast seeking later. 
 Unfortunately, using any csv.reader() (or DictReader) tries to cache, which means:
+
 ```
 example_Data = "'data
 0123456789ABCDE

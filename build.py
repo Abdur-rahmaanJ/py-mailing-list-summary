@@ -27,7 +27,7 @@ def build(mdfile):
 
     {{content}}
 
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
     </div>
     </body>
@@ -76,7 +76,7 @@ def build_index():
     {% for file in files %}
         <a href='{{file}}.html'>{{file}}</a><br>
     {% endfor %}
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
     </div>
     </body>
