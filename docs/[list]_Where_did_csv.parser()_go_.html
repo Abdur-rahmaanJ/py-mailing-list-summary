@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/atelier-forest-light.min.css">
+        <style>
+
+        </style>
+    </head>
+    <body>
+    <div class="container">
+
+    <h1>Where did csv.parser() go?</h1>
+<pre><code>https://mail.python.org/pipermail/python-list/2018-January/729851.html
+</code></pre>
+
+<p>I need record the starting offsets of csv rows in a database for fast seeking later. 
+Unfortunately, using any csv.reader() (or DictReader) tries to cache, which means:</p>
+<pre><code>example_Data = &quot;'data
+0123456789ABCDE
+1123456789ABCDE
+2123456789ABCDE
+3123456789ABCDE
+...
+'''
+
+
+for line in reader:
+    offsets[row] = f.tell() 
+</code></pre>
+
+<p>is not possible. With my example data , offsets are reported as <code>[0, 260, 260, 260...]</code> they should be <code>[0x00, 0x00,0x15, 0x25, ...]</code> (sample data is 16 byte rows after a 5 byte header (just for now)) </p>
+<p>I saw in one of PEP-305&rsquo;s references a mention of csv.parser() which won&rsquo;t return a row until parsing is complete. This is ideal since some lines will have quoted text containing commas and new lines.  I don&rsquo;t want to re-write the parser, since later usage will use csvDictReader, so we need to identically parse rows. How can I do that with the Python 2.7 csv module?</p>
+<p>Or how can I accomplish this task through other means?</p>
+<h3>response</h3>
+<p>It&rsquo;s not the reader that performs the caching it&rsquo;s iteration over the file:</p>
+<pre><code>$ python -c 'f = open(&quot;tmp.csv&quot;)
+&gt; for line in f: print f.tell()
+&gt; '
+73
+73
+73
+73
+73
+73
+</code></pre>
+
+<p>You can work around that by using the file&rsquo;s readline() method:</p>
+<pre><code>$ python -c 'f = open(&quot;tmp.csv&quot;)
+for line in iter(f.readline, &quot;&quot;): print f.tell()
+'
+5
+21
+37
+53
+69
+73
+</code></pre>
+
+<p>Combined with csv.reader():</p>
+<pre><code>$ python -c 'import csv; f = open(&quot;tmp.csv&quot;)
+for row in csv.reader(iter(f.readline, &quot;&quot;)): print f.tell(), row
+'
+5 ['data']
+21 ['0123456789ABCDE']
+37 ['1123456789ABCDE']
+53 ['2123456789ABCDE']
+69 ['3123456789ABCDE']
+73 ['...']
+</code></pre>
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    </div>
+    </body>
+    </html>
+    

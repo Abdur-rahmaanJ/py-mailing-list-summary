@@ -74,7 +74,7 @@ def build_index():
     <div class="container">
 
     {% for file in files %}
-        <a href='{{file}}.html'>{{file}}</a>
+        <a href='{{file}}.html'>{{file}}</a><br>
     {% endfor %}
     <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
@@ -90,3 +90,4 @@ files = []
 if __name__ == '__main__':
     build_all()
     build_index()
+    print('terminated')
