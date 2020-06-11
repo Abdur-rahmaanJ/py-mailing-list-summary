@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/atelier-forest-light.min.css">
+        <style>
+            blockquote{
+                background-color: #f8ffba;
+                border-left: 5px solid #dde68f;
+                margin: 20px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+    <a href="index.html">Home</a> | <a href="https://github.com/Abdur-rahmaanJ/pyfaq">Edit on Github</a>
+
+    <h1>Single or Double Quotes?</h1>
+<p><strong>OP says:</strong></p>
+<p>I am asking myself if I should preferably use single or double quotes
+for strings?</p>
+<p>If I need a single quote in a string I would use double quotes for the
+whole string and vice versa. For f-strings I mostly see double
+quotes but single quotes would work as well I think.</p>
+<p>Is there a recommendation?</p>
+<p><strong>ml_news at posteo.de (Manfred Lotz)</strong><hr></p>
+<p>Nothing strong. I tend to use double quotes because I have a
+background in C (where double quotes are for strings, single quotes
+for characters), and double quotes are the recommendation for
+docstrings (see PEP 258). If you tend to work a lot with SQL, you
+might prefer single quotes. Use whatever makes you happy.</p>
+<p><strong>rosuav at gmail.com (Chris Angelico)</strong><hr></p>
+<blockquote>
+<p>On Wed, May 20, 2020 at 4:21 AM Manfred Lotz <ml_news at posteo.de> wrote:</p>
+<blockquote>
+<p>Hi there,
+I am asking myself if I should preferably use single or double quotes
+for strings?</p>
+<p>If I need a single quote in a string I would use double quotes for the
+whole string and vice versa. For f-strings I mostly see double
+quotes but single quotes would work as well I think.</p>
+<p>Is there a recommendation?
+</p>
+</blockquote>
+<p>Nothing strong. I tend to use double quotes because I have a
+background in C (where double quotes are for strings, single quotes
+for characters), and double quotes are the recommendation for
+docstrings (see PEP 258). If you tend to work a lot with SQL, you
+might prefer single quotes. Use whatever makes you happy.</p>
+</blockquote>
+<p>Have been finding myself doing somewhat the opposite:</p>
+<pre><code>"a literal string"
+f'a string featuring computation of { result }'
+</code></pre>
+<p>(never managed to make it as far as C in my alphabet skills, but yes, 
+maybe SQL influences)</p>
+<p>@Chris: are you on the night-shift?</p>
+<p><strong>PythonList at DancesWithMice.info (DL Neil)</strong><hr></p>
+<blockquote>
+<p>Hi there,
+I am asking myself if I should preferably use single or double
+quotes for strings?</p>
+</blockquote>
+<p>I&rsquo;d say your consistency matters more than which one you choose.</p>
+<p>According to a recent observation by Raymond H.</p>
+<pre><code>Over time, the #python world has shown increasing preference
+for double quotes:  "hello" versus 'hello'.
+
+Perhaps, this is due to the persistent influence of JSON,
+PyCharm, Black, and plain English.
+
+In contrast, the interpreter itself prefers single quotes:
+
+&gt;&gt;&gt; "hello"
+'hello'
+</code></pre>
+<p><a href="https://twitter.com/raymondh/status/1259209765072154624">tweet</a></p>
+<p>I think the worst choice is to be haphazard in your usage with a
+hodgepodge of single/double quotes.</p>
+<p>I personally use habits from my C days:  double-quotes for everything
+except single characters for which I use a single-quote:</p>
+<p>if &lsquo;e&rsquo; in &ldquo;hello&rdquo;:</p>
+<p>as in indicator that I&rsquo;m using it as a single character rather than
+as a string.</p>
+<p>I don&rsquo;t have a firm rule for myself if a string contains
+double-quotes.  It doesn&rsquo;t happen often for me in a case where I
+couldn&rsquo;t use a triple-quoted string or that I am refering to it as a
+single character.</p>
+<p><strong>python.list at tim.thechases.com (Tim Chase)</strong><hr></p>
+<blockquote>
+<p>I thought triple quotes are for docstrings?</p>
+</blockquote>
+<p>Yes, but triple double quotes ==&gt; &ldquo;&rdquo;&rdquo; &lt;== not triple single quotes ==&gt;
+&lsquo;&rsquo;&lsquo; &lt;== is what PEP 258 recommends. The description is awkward but
+it&rsquo;s still a place where the double-quote character (U+0022 QUOTATION
+MARK) is the recommendation.</p>
+<blockquote>
+<p>@Chris: are you on the night-shift?
+Yes? :)</p>
+</blockquote>
+<p><strong>rosuav at gmail.com (Chris Angelico)</strong><hr></p>
+<blockquote>
+<p>I thought triple quotes are for docstrings?</p>
+</blockquote>
+<p>It&rsquo;s the recommendation, but double and single quotes work just fine, too &ndash; at least for docstrings that fit an one line.</p>
+<p><strong>ethan at stoneleaf.us (Ethan Furman)</strong><hr></p>
+<p>I am influenced by Perl which I used before. In Perl I used double
+quoted strings when I wanted interpolation. Otherwise single quoted
+strings. In Rust (or C) it is double quotes for strings and single
+quotes for characters. </p>
+<p>You may be right. Consistency is a good thing. So, I have to decide for
+what I use and be consistent thereafter.</p>
+<p><strong>ml_news at posteo.de (Manfred Lotz)</strong><hr></p>
+<p>And I, the shell (where single quotes are &ldquo;raw&rdquo; and double quotes allow 
+parameter substitution).  So I use single quotes for plain old strings 
+and double quotes when I&rsquo;m going to be formatting the string with % 
+(therefore, in most logging calls).</p>
+<p>Personally I find double quotes visually noisy, and prefer single 
+quotes. Most of the time.</p>
+<p>This is one of the reasons I autoformat with yapf (which doesn&rsquo;t change 
+my quoting) rather than black (which is very opinionated and also 
+untunable, and <em>does</em> change my quotes).</p>
+<p><strong>cs at cskk.id.au (Cameron Simpson)</strong><hr></p>
+<blockquote>
+<p>Hi there,
+I am asking myself if I should preferably use single or double quotes
+for strings?</p>
+</blockquote>
+<p>Personally laziness wins every time. Single quotes only require one
+finger from the home position using my right hand, double quotes
+require two and a big movement of my left hand from home.</p>
+<p>So I use single quotes most of the time (ie unless it contains
+a single quote)</p>
+<p><strong>alan.gauld at yahoo.co.uk (Alan Gauld)</strong><hr></p>
+<blockquote>
+<p>Hi there,
+I am asking myself if I should preferably use single or double quotes
+for strings?</p>
+<p>If I need a single quote in a string I would use double quotes for the
+whole string and vice versa. For f-strings I mostly see double
+quotes but single quotes would work as well I think.</p>
+<p>Is there a recommendation?</p>
+</blockquote>
+<p>I personally like to use &ldquo;This is a phrase or sentence&rdquo; while &lsquo;0&rsquo;, &lsquo;\n&rsquo;, 
+and &lsquo;work&rsquo; are items or words.</p>
+<p><code># And this is a comment 'quoted' by '#' and '\n'.</code></p>
+<p><strong>tjreedy at udel.edu (Terry Reedy)</strong><hr></p>
+<p>Tim Chase <python.list at tim.thechases.com> wrote:</p>
+<blockquote>
+<p>On 2020-05-19 20:10, Manfred Lotz wrote:</p>
+<blockquote>
+<p>Hi there,
+I am asking myself if I should preferably use single or double
+quotes for strings?  </p>
+</blockquote>
+<p>I&rsquo;d say your consistency matters more than which one you choose.
+</p>
+</blockquote>
+<p>First, thanks to all for your opinions and judgements.</p>
+<p>I agree to the following:</p>
+<ol>
+<li>Consistency is important.</li>
+<li>Single quotes are less noisy.</li>
+<li>Triple double quotes are to be preferred over triple single quotes.</li>
+</ol>
+<p>I also believe that transferring habits from C, Rust or whatever to
+Python doesn&rsquo;t make much sense as Python does not distinguish between a
+character and string from a type perspective.</p>
+<p>Of course, this is my subjective result, and others (may) have
+different opinions. </p>
+<p><strong>ml_news at posteo.de (Manfred Lotz)</strong><hr></p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>quotes for strings?
+&hellip;</p>
+</blockquote>
+</blockquote>
+<p>I agree to the following:</p>
+<ol>
+<li>Consistency is important.</li>
+<li>Single quotes are less noisy.</li>
+<li>Triple double quotes are to be preferred over triple single quotes.
+&hellip;</li>
+</ol>
+<p>Of course, this is my subjective result, and others (may) have
+different opinions.</p>
+</blockquote>
+<ol>
+<li>unless a specific objective of a re-factoring exercise, maintain the 
+conventions used within the code.</li>
+</ol>
+<p>5, adhere to the conventions/standards/requirements of the dev.team or 
+organisation.</p>
+<p><strong>PythonList at DancesWithMice.info (DL Neil)</strong><hr></p>
+<blockquote>
+<p>background in C (where double quotes are for strings, single quotes
+for characters), and double quotes are the recommendation for
+docstrings (see PEP 258). If you tend to work a lot with SQL, you
+might prefer single quotes. Use whatever makes you happy.</p>
+</blockquote>
+<p>I also came to Python from C and tend to make the same mental distinction,
+though that has softened with time. Given that I have four different
+choices, I consider:</p>
+<p>a) If it&rsquo;s preexisting code (especially written by someone else) I try to
+maintain that style (if discernable) for consistency, subject to</p>
+<p>b) Minimizing the need to use backslashes</p>
+<p>I also agree about SQL. I found that something like this:</p>
+<pre><code>stmt = (
+    """select foo from bar"""
+    """  where a = 'bag'"""
+    """    and c = 'dog'"""
+)
+</code></pre>
+<p>worked pretty well, served to both satisfy my brain&rsquo;s desire for semantic
+indentation (you should see some of the SQL I inherited - yikes!) and
+maintain a visual distinction between Python and SQL quoting. (Consistently
+using triple quotes minimizes the chance of needing a stray Python
+backslash inside the SQL code.) I&rsquo;m now retired, so can&rsquo;t double check, but
+I believe SQLite and MSSQL are unusual in their Pythonesque treatment of
+single and double quotes being synonymous. I believe most other dialects
+(Oracle, MySQL, Sybase, PostgreSQL that I checked) only recognize single
+quotes as string delimiters.</p>
+<p><strong>skip.montanaro at gmail.com (Skip Montanaro)</strong><hr></p>
+<blockquote>
+<p>I also believe that transferring habits from C, Rust or whatever to
+Python doesn&rsquo;t make much sense as Python does not distinguish between a
+character and string from a type perspective.</p>
+</blockquote>
+<p>From a logical perspective, you are correct.  From the point of view of 
+someone who writes more C code than Python, not having to remember a new 
+set of habits for Python makes life a lot simpler.</p>
+<p>Chacun ? son go?t and all that.</p>
+<p><strong>rhodri at kynesim.co.uk (Rhodri James)</strong><hr></p>
+<pre><code>&gt;&gt;&gt; &quot;single or double&quot;
+'single or double'
+</code></pre>
+
+<p>I read a recent quote from Raymond Hettinger saying that the
+Python world prefers double ones. If Mr Hettinger is around i&rsquo;d
+like to ask him where he pulled the theory from
+<a href="https://twitter.com/raymondh/status/1259209765072154624?s=20">tweet</a></p>
+<p><strong>arj.python at gmail.com (Abdur-Rahmaan Janhangeer)</strong><hr>
+<arj.python at gmail.com> wrote:</p>
+<blockquote>
+<p>The interpreter prefers single-quotes
+</p>
+</blockquote>
+<pre><code>&gt;&gt;&gt; &quot;single or double&quot;
+'single or double'
+</code></pre>
+
+<pre><code>&gt;&gt;&gt; 'not all that strongly, it doesn\'t'
+&quot;not all that strongly, it doesn't&quot;
+</code></pre>
+
+<p><strong>rosuav at gmail.com (Chris Angelico)</strong><hr></p>
+<blockquote>
+<p>On Sat, May 23, 2020 at 10:52 PM Abdur-Rahmaan Janhangeer
+<arj.python at gmail.com> wrote:</p>
+<blockquote>
+<p>The interpreter prefers single-quotes</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>&ldquo;single or double&rdquo;<br>
+&lsquo;single or double&rsquo;</p>
+</blockquote>
+<p>&lsquo;not all that strongly, it doesn't&rsquo;<br>
+&ldquo;not all that strongly, it doesn&rsquo;t&rdquo;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>But when a string contains both, it biases towards single quotes:</p>
+<pre><code>&gt;&gt;&gt; "You said \"No it doesn't\""
+'You said "No it doesn\'t"'
+</code></pre>
+<p>;-)</p>
+<p><strong>python.list at tim.thechases.com (Tim Chase)</strong><hr></p>
+<p>Was requoting:</p>
+<blockquote>
+<p>In contrast, the interpreter itself prefers single quotes:</p>
+</blockquote>
+<pre><code>&gt;&gt;&gt; &quot;hello&quot;
+'hello'
+</code></pre>
+
+<p>from R Hettinger</p>
+<p><strong>arj.python at gmail.com (Abdur-Rahmaan Janhangeer)</strong><hr></p>
+<blockquote>
+<p>I also agree about SQL. I found that something like this:</p>
+</blockquote>
+<pre><code>stmt = (
+     """select foo from bar"""
+     """  where a = 'bag'"""
+     """    and c = 'dog'"""
+)
+</code></pre>
+<blockquote>
+<p>worked pretty well, served to both satisfy my brain&rsquo;s desire for semantic
+indentation (you should see some of the SQL I inherited - yikes!) and
+maintain a visual distinction between Python and SQL quoting. (Consistently
+using triple quotes minimizes the chance of needing a stray Python
+backslash inside the SQL code.) I&rsquo;m now retired, so can&rsquo;t double check, but
+I believe SQLite and MSSQL are unusual in their Pythonesque treatment of
+single and double quotes being synonymous. I believe most other dialects
+(Oracle, MySQL, Sybase, PostgreSQL that I checked) only recognize single
+quotes as string delimiters.</p>
+</blockquote>
+<p>The older (and more professional?) RDBMS accept either/both as variable 
+delimiters, per Python strings.</p>
+<p>My habit with SQL queries is to separate them from other code, cf the 
+usual illustration of having them &lsquo;buried&rsquo; within the code, immediately 
+before, or even part of, the query call.</p>
+<p>This partly because (a) some dev.teams have a specific person handling 
+DBA-tasks, and partly (b) in order to make it easy to 
+find/correct/re-factor SQL code without it being mixed-in with the Python.</p>
+<p>(a) using a separate and specific module for SQL constants (which may 
+include queries as text, or prepared queries), means that the &lsquo;DBA&rsquo; may 
+develop independently of the Python devs; that integration of code 
+happens in the VCS; that the Python code may separate (stub) or 
+integrate during unit-testing, according to progress and choice.</p>
+<p>(b) physical &lsquo;extraction&rsquo; and separation make it easier to develop and 
+test each component (SQL, Python, &hellip;) separately - either work in SQL 
+<em>or</em> in Python, and not have the extra &lsquo;load&rsquo; of having to flip one&rsquo;s 
+brain between the two; and by using a separate module, makes it easy to 
+locate a &lsquo;class&rsquo; of code dealing with particular data and/or 
+carrying-out particular functions - much as you might for classes and/or 
+libraries.</p>
+<p>Oh, and a further benefit: (further to &ldquo;inherited&rdquo;, above) it becomes 
+easier to avoid the massive tangles caused by trying to mix the 
+conventions for indenting multi-line SQL code, with those for Python!</p>
+<p><strong>PythonList at DancesWithMice.info (DL Neil)</strong><hr></p>
+<blockquote>
+<p>On 2020-05-24 01:40, Chris Angelico wrote:</p>
+<blockquote>
+<p>On Sat, May 23, 2020 at 10:52 PM Abdur-Rahmaan Janhangeer
+<arj.python at gmail.com> wrote:</p>
+<blockquote>
+<p>The interpreter prefers single-quotes</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>&ldquo;single or double&rdquo;
+&lsquo;single or double&rsquo;</p>
+</blockquote>
+<p>&lsquo;not all that strongly, it doesn't&rsquo;
+&ldquo;not all that strongly, it doesn&rsquo;t&rdquo;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>But when a string contains both, it biases towards single quotes:</p>
+<pre><code>&gt;&gt;&gt; "You said \"No it doesn't\""
+'You said "No it doesn\'t"'
+</code></pre>
+<p>;-)</p>
+</blockquote>
+<p>I&rsquo;m highly amused by this interchange - for two reasons: that you&rsquo;d 
+noticed these details, and that I hadn&rsquo;t!</p>
+<p>Yes, I&rsquo;d noted that the REPL responds with single-quotes, even if I used 
+double-quotes in the definition (per &ldquo;single of double&rdquo;, above) - for 
+whatever that&rsquo;s worth (it&rsquo;s not as if the delimiters are stored along 
+with other variable detail!)</p>
+<p>That the REPL is &lsquo;intelligent&rsquo; about its choice to vary the delimiter to 
+suit the content is good (design) sense - the best presentation (UX), ie 
+doesn&rsquo;t is a better presentation than doesn't!</p>
+<p>Which brings me to my own, humble, and quite often non-PEP-8-respecting 
+habits: that I (basically) apply the ?rules of English grammar to Python 
+(which I write (mostly) in English). Thus a &ldquo;quotation&rdquo;, eg someone&rsquo;s 
+name, but any piece of data, will be enclosed in double-quotes:</p>
+<pre><code>name = "Abdur-Rahman"
+</code></pre>
+<p>whereas, when something will be &lsquo;calculated&rsquo;, I use singles, eg</p>
+<pre><code>f'{ name } is top of the class'
+</code></pre>
+<p>Never learning a language which distinguishes single character literals 
+from strings, eg the C examples quoted earlier, such 
+thoughts/distinctions don&rsquo;t &lsquo;exist&rsquo;.
+(which makes me wonder why code reviews have never queried the point, or 
+registered that I might seem to be behaving inconsistently&hellip;)</p>
+<p><strong>PythonList at DancesWithMice.info (DL Neil)</strong><hr></p>
+<blockquote>
+<p>I also agree about SQL. I found that something like this:</p>
+</blockquote>
+<pre><code>stmt = (
+     """select foo from bar"""
+     """  where a = 'bag'"""
+     """    and c = 'dog'"""
+)
+</code></pre>
+<blockquote>
+<p>worked pretty well, served to both satisfy my brain&rsquo;s desire for semantic
+indentation (you should see some of the SQL I inherited - yikes!) and
+maintain a visual distinction between Python and SQL quoting. (Consistently
+using triple quotes minimizes the chance of needing a stray Python
+backslash inside the SQL code.)</p>
+</blockquote>
+<p>May I ask why not simply like this:</p>
+<p>stmt = &ldquo;&rdquo;&rdquo;
+      select foo from bar
+        where a = &lsquo;bag&rsquo;
+          and c = &lsquo;dog&rsquo;
+      &ldquo;&rdquo;&ldquo;</p>
+<p>This introduces more newlines and spaces in the query, but that
+shouldn&rsquo;t really matter. I think it&rsquo;s more readable, and easier to edit
+the query.</p>
+<blockquote>
+<p>I&rsquo;m now retired, so can&rsquo;t double check, but
+I believe SQLite and MSSQL are unusual in their Pythonesque treatment of
+single and double quotes being synonymous. I believe most other dialects
+(Oracle, MySQL, Sybase, PostgreSQL that I checked) only recognize single
+quotes as string delimiters.</p>
+</blockquote>
+<p>Right. The SQLite developers did it that way in an effort to be
+compatible with MySQL, and since have come to the realisation that that
+was a mistake. In recent versions you can turn it off, in which cases
+single quotes are for string literals and double quotes are for
+identifiers (such as column names), as in standard SQL.
+See
+https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted</p>
+<p><strong>roel at roelschroeven.net (Roel Schroeven)</strong><hr></p>
+<blockquote>
+<p>May I ask why not simply like this:</p>
+<p>stmt = &ldquo;&rdquo;&rdquo;
+      select foo from bar
+        where a = &lsquo;bag&rsquo;
+          and c = &lsquo;dog&rsquo;
+      &ldquo;&rdquo;&rdquo;
+</p>
+</blockquote>
+<p>Sorry, I don&rsquo;t recall. I wouldn&rsquo;t be at all surprised that it has something
+to do with Emacs&rsquo;s Python mode behavior. Emacs wouldn&rsquo;t know what to do
+with spaces in the string, but knows where to put string literals within
+the open parens. I&rsquo;m pretty sure I was doing this before triple quoted
+strings existed.</p>
+<p>Thankfully, I don&rsquo;t need to mess around with SQL anymore. :-)</p>
+<p><strong>skip.montanaro at gmail.com (Skip Montanaro)</strong><hr></p>
+<blockquote>
+<blockquote>
+<p>May I ask why not simply like this:</p>
+<p>stmt = &ldquo;&rdquo;&rdquo;
+       select foo from bar
+         where a = &lsquo;bag&rsquo;
+           and c = &lsquo;dog&rsquo;
+       &ldquo;&rdquo;&ldquo;</p>
+</blockquote>
+<p>Sorry, I don&rsquo;t recall. I wouldn&rsquo;t be at all surprised that it has something
+to do with Emacs&rsquo;s Python mode behavior. Emacs wouldn&rsquo;t know what to do
+with spaces in the string, but knows where to put string literals within
+the open parens. I&rsquo;m pretty sure I was doing this before triple quoted
+strings existed.</p>
+<p>Thankfully, I don&rsquo;t need to mess around with SQL anymore. :-)</p>
+</blockquote>
+<p>Awwww. don&rsquo;t be like that - send it all to me, and I&rsquo;ll fix it for you 
+(at exorbitant rates, of course)&hellip;</p>
+<p>The above is valid - the editor has a file in one format/language, and 
+is therefore applying &lsquo;the wrong rules&rsquo; when it attempts to make SQL 
+look like Python!</p>
+<p>The inconvenience (cf &ldquo;issue&rdquo;) that arises, is that many SQL debuggers 
+and error-handlers (etc) will repeat-back the source-code/query 
+as-provided. Consequently, those messages are all messed-up with 
+extraneous tabs and new-lines, making them difficult to read and debug.
+(see also: earlier post mentioning separation of languages/code)</p>
+<p><strong>PythonList at DancesWithMice.info (DL Neil)</strong><hr></p>
+<blockquote>
+<p>On Sat, 23 May 2020 11:03:09 -0500, Tim Chase</p>
+<blockquote>
+<p>But when a string contains both, it biases towards single quotes:</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>&ldquo;You said "No it doesn&rsquo;t"&ldquo;<br>
+  &lsquo;You said &ldquo;No it doesn't&rdquo;&rsquo;  </p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>This is where using triple quotes (or triple apostrophes)
+around the entire thing simplifies it all&hellip; (except for a need to
+separate the four ending quotes)</p>
+</blockquote>
+<p>Unless you&rsquo;re pathological. ;-)</p>
+<pre><code>&gt;&gt;&gt; &quot;&quot;&quot;I said &quot;This contain every type of \&quot;&quot;&quot;Python\&quot;&quot;&quot; '''triple-quoted''' string, doesn't it?\&quot;&quot;&quot;&quot;
+'I said &quot;This contains every type of &quot;&quot;&quot;Python&quot;&quot;&quot; \'\'\'triple-quoted\'\'\' string, doesn\'t it.&quot;'
+</code></pre>
+
+<p>And-you-can-quote-me-on-that&rsquo;ly yers,</p>
+<p><strong>python.list at tim.thechases.com (Tim Chase)</strong><hr></p>
+<p>Dennis Lee Bieber <wlfraed at ix.netcom.com> wrote:</p>
+<blockquote>
+<p>On Sat, 23 May 2020 11:03:09 -0500, Tim Chase
+<python.list at tim.thechases.com> declaimed the following:</p>
+<blockquote>
+<p>But when a string contains both, it biases towards single quotes:</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>&ldquo;You said "No it doesn&rsquo;t"&ldquo;<br>
+  &lsquo;You said &ldquo;No it doesn't&rdquo;&rsquo;  </p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>This is where using triple quotes (or triple apostrophes)
+around the entire thing simplifies it all&hellip; (except for a need to
+separate the four ending quotes)</p>
+</blockquote>
+<p>Exactly, I also would opt for triple quotes in this case. </p>
+<p><strong>ml_news at posteo.de (Manfred Lotz)</strong><hr></p>
+<p>Nice idea</p>
+<pre><code>&gt;&gt;&gt; '''You said &quot;No it doesn't&quot;'''
+'You said &quot;No it doesn\'t&quot;'
+</code></pre>
+
+<p><strong>arj.python at gmail.com (Abdur-Rahmaan Janhangeer)</strong><hr></p>
+<blockquote>
+<p>I&rsquo;m highly amused by this interchange - for two reasons: that you&rsquo;d
+noticed these details, and that I hadn&rsquo;t!
+</p>
+</blockquote>
+<p>Yes Mr Chris is good for coming on with these kind of points ^^_</p>
+<blockquote>
+<p>Yes, I&rsquo;d noted that the REPL responds with single-quotes, even if I used
+double-quotes in the definition (per &ldquo;single of double&rdquo;, above) - for
+whatever that&rsquo;s worth (it&rsquo;s not as if the delimiters are stored along
+with other variable detail!)</p>
+<p>That the REPL is &lsquo;intelligent&rsquo; about its choice to vary the delimiter to
+suit the content is good (design) sense - the best presentation (UX), ie
+doesn&rsquo;t is a better presentation than doesn't!</p>
+<p>Which brings me to my own, humble, and quite often non-PEP-8-respecting
+habits: that I (basically) apply the ?rules of English grammar to Python
+(which I write (mostly) in English). Thus a &ldquo;quotation&rdquo;, eg someone&rsquo;s
+name, but any piece of data, will be enclosed in double-quotes:</p>
+<pre><code>    name = "Abdur-Rahman"
+</code></pre>
+<p>whereas, when something will be &lsquo;calculated&rsquo;, I use singles, eg</p>
+<pre><code>    f'{ name } is top of the class'
+</code></pre>
+</blockquote>
+<p>This discussion dives a bit further into the philosophy
+of Python.  Must reactivate the FaQ repo project.
+Mr Barker is doing it for python-ideas.</p>
+<p><strong>arj.python at gmail.com (Abdur-Rahmaan Janhangeer)</strong><hr></p>
+<blockquote>
+<p>My habit with SQL queries is to separate them from other code, cf the 
+usual illustration of having them &lsquo;buried&rsquo; within the code, immediately 
+before, or even part of, the query call.
+</p>
+</blockquote>
+<p>I like that idea, as I find that I am embedding more and more SQL in my 
+code.</p>
+<p>How do you handle parameters? Do you leave placeholders (&lsquo;?&rsquo; or &lsquo;%s&rsquo;) in 
+the query, and leave it to the &lsquo;importer&rsquo; of the query to figure out 
+what is required?</p>
+<p><strong>frank at chagford.com (Frank Millman)</strong><hr></p>
+<blockquote>
+<p>On 2020-05-23 9:45 PM, DL Neil via Python-list wrote:</p>
+<blockquote>
+<p>My habit with SQL queries is to separate them from other code, cf the 
+usual illustration of having them &lsquo;buried&rsquo; within the code, 
+immediately before, or even part of, the query call.
+</p>
+</blockquote>
+<p>I like that idea, as I find that I am embedding more and more SQL in my 
+code.</p>
+<p>How do you handle parameters? Do you leave placeholders (&lsquo;?&rsquo; or &lsquo;%s&rsquo;) in 
+the query, and leave it to the &lsquo;importer&rsquo; of the query to figure out 
+what is required?</p>
+</blockquote>
+<p>Yes. Most &ldquo;connector&rdquo; software includes a feature which auto-magically 
+escapes all variable-data - a valuable safety feature!</p>
+<p>I&rsquo;ve been experimenting by going further and providing app.devs with 
+functions/methods, a mini-API if you will. Given that many?most don&rsquo;t 
+like having to deal with SQL, the extra &lsquo;insulation&rsquo; boosts my personal 
+popularity&hellip;
+(and I need as much of that as I can get!)</p>
+<p><strong>PythonList at DancesWithMice.info (DL Neil)</strong><hr></p>
+<blockquote>
+<p>On 24/05/20 5:43 PM, Frank Millman wrote:</p>
+<blockquote>
+<p>On 2020-05-23 9:45 PM, DL Neil via Python-list wrote:</p>
+<blockquote>
+<p>My habit with SQL queries is to separate them from other code, cf the 
+usual illustration of having them &lsquo;buried&rsquo; within the code, 
+immediately before, or even part of, the query call.
+</p>
+</blockquote>
+<p>I like that idea, as I find that I am embedding more and more SQL in 
+my code.</p>
+<p>How do you handle parameters? Do you leave placeholders (&lsquo;?&rsquo; or &lsquo;%s&rsquo;) 
+in the query, and leave it to the &lsquo;importer&rsquo; of the query to figure 
+out what is required?</p>
+</blockquote>
+<p>Yes. Most &ldquo;connector&rdquo; software includes a feature which auto-magically 
+escapes all variable-data - a valuable safety feature!</p>
+<p>I&rsquo;ve been experimenting by going further and providing app.devs with 
+functions/methods, a mini-API if you will. Given that many?most don&rsquo;t 
+like having to deal with SQL, the extra &lsquo;insulation&rsquo; boosts my personal 
+popularity&hellip;
+(and I need as much of that as I can get!)</p>
+</blockquote>
+<p>Ok. I will have to give it some thought.</p>
+<p>I generate most of my SQL dynamically, constructing the query 
+programmatically using the meta-data in my system.</p>
+<p>But now I am constructing some more complex queries, which I can&rsquo;t 
+generate automatically yet. I am hoping that a pattern emerges which I 
+can use to automate them, but for now I am doing it by hand.</p>
+<p>There are a number of parameters required, and it will not be obvious at 
+first sight what values are required. If I am going to keep the queries 
+in a separate module, I think that I will have to provide some sort of 
+accompanying documentation with each query explaining what the required 
+parameters are.</p>
+<p>Thinking aloud, I may set up a separate module for the queries, but make 
+each one a &lsquo;function&rsquo;, which specifies what data is required. The caller 
+calls the function with the data as an argument, and the function uses 
+it to build the parameter list and returns the SQL along with the 
+parameters. The function can also contain documentation explaining how 
+the query works.</p>
+<p>As you say, this has the benefit of separating the SQL from the Python 
+code, so I will definitely pursue this idea.</p>
+<p>Thanks</p>
+<p><strong>frank at chagford.com (Frank Millman)</strong><hr></p>
+<p>We have been talking (slightly OT for thread - apologies) about the 
+narrow sub-objectives of transferring data between a Python application 
+and an RDBMS. May I advise consideration of the wider specification?</p>
+<p>For example, one may find it helpful to use a library/abstraction such 
+as SQLAlchemy. Such facilitates transaction data being taken directly 
+from/returned to a Python class! Whereas this discussion (above) only 
+returns raw data-items, thus necessitating the application programmers 
+coding an appropriate &lsquo;getter&rsquo; to provide data to the RDBMS 
+interface-functions, and/or a &lsquo;setter&rsquo; to absorb query-results into the 
+application&rsquo;s data-class(es)!</p>
+<p>Of course, there are plenty of applications where one might eschew such 
+advantages, eg a simple interface, and at the other end of the scale: if 
+the data were to be formatted into a pandas data-frame.</p>
+<p>Horses for courses!</p>
+<p><strong>PythonList at DancesWithMice.info (DL Neil)</strong><hr></p>
+
+    <a href="index.html">Home</a>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    </div>
+    </body>
+    </html>
+    

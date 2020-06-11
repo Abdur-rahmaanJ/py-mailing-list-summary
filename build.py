@@ -12,21 +12,28 @@ def build(mdfile):
     ```
     '''
     TEMPLATE = """<!DOCTYPE html>
-    <html lang="fr">
+    <html lang="en">
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
         <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/atelier-forest-light.min.css">
         <style>
-
+            blockquote{
+                background-color: #f8ffba;
+                border-left: 5px solid #dde68f;
+                margin: 20px;
+                padding: 10px;
+            }
         </style>
     </head>
     <body>
     <div class="container">
+    <a href="index.html">Home</a> | <a href="https://github.com/Abdur-rahmaanJ/pyfaq">Edit on Github</a>
 
     {{content}}
 
+    <a href="index.html">Home</a>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
     </div>
@@ -60,7 +67,7 @@ def build_all():
 def build_index():
     global files
     TEMPLATE = """<!DOCTYPE html>
-    <html lang="fr">
+    <html lang="en">
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
@@ -71,10 +78,12 @@ def build_index():
         </style>
     </head>
     <body>
-    <div class="container">
 
+    <div class="container">
+    <a href="https://github.com/Abdur-rahmaanJ/pyfaq">Edit on Github</a>
+    <br>
     {% for file in files %}
-        <a href='{{file}}.html'>{{file}}</a><br>
+        <a href='{{file}}.html'>{{file.replace('__', '@').replace('_', ' ').replace('@', '__')}}</a><br>
     {% endfor %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
